@@ -12,4 +12,9 @@ class Post extends Model
     {
         return $this->belongsTo('App\Source');
     }
+
+    public function getSourceNameAttribute()
+    {
+        return $this->source->name;
+    }
 }
