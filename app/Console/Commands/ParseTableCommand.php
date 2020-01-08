@@ -2,12 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Helpers\ConsoleOutput;
 use App\Post;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 
-class ParseTableCommand extends Command
+class ParseTableCommand extends BaseCommand
 {
     /**
      * The name and signature of the console command.

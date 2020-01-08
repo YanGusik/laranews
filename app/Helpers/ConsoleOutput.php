@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Helpers1;
+namespace App\Helpers;
 
 use Illuminate\Console\Command;
 
@@ -8,15 +8,18 @@ class ConsoleOutput
 {
     /** @var Command */
     public static $runningCommand;
-    public $count = 0;
 
     public function setOutput(Command $runningCommand)
     {
-        $this->count++;
         static::$runningCommand = $runningCommand;
     }
 
-    public static function __callStatic(string $method, $arguments)
+    public function bar()
+    {
+        return (static::$runningCommand)->getOutput();
+    }
+
+    public static function __callStatic(string $method, $arguments = null)
     {
         if (!static::$runningCommand) {
             return;

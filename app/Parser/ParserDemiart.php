@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Service;
+namespace App\Parser;
 
+use App\Helpers\ConsoleOutput;
 use App\Post;
 use App\Source;
 use App\Interfaces\ParseSiteInterface;
@@ -21,9 +22,11 @@ class ParserDemiart extends BaseParser implements ParseSiteInterface
     }
 
     /***
+     * Parsing new Post
      *
+     * @throws \Exception
      */
-    public function parse() : bool
+    public function parse(): bool
     {
         Log::info("Start Parsing " . self::URI);
 
@@ -37,26 +40,30 @@ class ParserDemiart extends BaseParser implements ParseSiteInterface
 
         Log::info("Number of posts found (Maybe not unique): {$posts->count()}");
 
-
         $source = Source::whereName('Demiart')->firstOrFail();
 
+        $bar = app(ConsoleOutput::class)->bar()->createProgressBar($posts->count());
+
+
         if ($posts->count() > 0):
-            $posts->each(function (Crawler $node, $i) use (&$arr, &$countNewPost, $source) {
-                $imageNode = $node->filter("div.card > a.card__media > img");
-                $linkNode = $node->filter("div.card > a.card__media");
-                $titleNode = $node->filter("div.card > div.card__body > header > h2 > a");
-                $descriptionNode = $node->filter("div.card > div.card__body > div.card__content > p");
-                $dateNode = $node->filter("div.card > div.card__body > footer.card__footer > span.posted-on > a > time");
+            $bar->start();
+            $posts->each(function (Crawler $node) use (&$arr, &$countNewPost, $source, &$bar) {
+                $bar->advance();
+                $nodes = new Nodes();
+                $nodes->title = $node->filter("div.card > div.card__body > header > h2 > a");
+                $nodes->image = $node->filter("div.card > a.card__media > img");
+                $nodes->link = $node->filter("div.card > a.card__media");
+                $nodes->description = $node->filter("div.card > div.card__body > div.card__content > p");
+                $nodes->date = $node->filter("div.card > div.card__body > footer.card__footer > span.posted-on > a > time");
 
-                if ($imageNode->count() == 0 || $dateNode->count() == 0 || $linkNode->count() == 0 || $descriptionNode->count() == 0 || $titleNode->count() == 0):
-                    throw new \Exception("Node not found ");
-                endif;
+                $this->CheckNodes($nodes);
 
-                $image = $imageNode->attr('src');
-                $title = $titleNode->text();
-                $date = Carbon::parse($dateNode->attr('datetime'));
-                $description = $descriptionNode->text();
-                $link = $linkNode->attr('href');
+
+                $image = $nodes->image->attr('src');
+                $title = $nodes->title->text();
+                $date = Carbon::parse($nodes->date->attr('datetime'));
+                $description = $nodes->description->text();
+                $link = $nodes->link->attr('href');
 
 
                 if ($this->CheckPost($link)):
@@ -70,6 +77,7 @@ class ParserDemiart extends BaseParser implements ParseSiteInterface
                     $countNewPost++;
                 endif;
             });
+            $bar->finish();
         else:
             throw new \Exception("Posts not found");
         endif;

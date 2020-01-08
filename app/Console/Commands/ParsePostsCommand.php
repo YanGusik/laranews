@@ -2,11 +2,11 @@
 
 namespace App\Console\Commands;
 
-use App\Service\ParserDemiart;
-use App\Service\ParserLaravelNews;
+use App\Parser\ParserDemiart;
+use App\Parser\ParserLaravelNews;
 use Illuminate\Console\Command;
 
-class ParsePostsCommand extends Command
+class ParsePostsCommand extends BaseCommand
 {
     /**
      * The name and signature of the console command.
@@ -41,16 +41,16 @@ class ParsePostsCommand extends Command
     {
         $this->info("Start parsing");
 
-        try
-        {
-            $ln = new ParserLaravelNews();
-            $ln->parse() ? $this->info("Finished parsing - LaravelNews") : $this->error("Failed parsing Laravel News");
-
-            $dm = new ParserDemiart();
-            $dm->parse() ? $this->info("Finished parsing - Demiart") : $this->error("Failed parsing Demiart");
-        }
-        catch (\Exception $ex)
-        {
+        try {
+//            $ln = new ParserLaravelNews();
+//            $ln->parse() ? $this->info("Finished parsing - LaravelNews") : $this->error("Failed parsing Laravel News");
+            $demiart = new ParserDemiart();
+            if ($demiart->parse()) {
+                $this->info("\nFinished parsing - Demiart");
+            } else {
+                $this->error("\nFailed parsing Demiart");
+            }
+        } catch (\Exception $ex) {
             $this->warn($ex->getMessage());
         }
     }
