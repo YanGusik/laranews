@@ -19,6 +19,8 @@ class CreatePostsTable extends Migration
             $table->string('link');
             $table->string('image');
             $table->text('description');
+            $table->unsignedBigInteger('source_id');
+            $table->foreign('source_id')->references('id')->on('sources')->onDelete('cascade');
             $table->timestamp('date');
             $table->timestamps();
         });
@@ -31,6 +33,10 @@ class CreatePostsTable extends Migration
      */
     public function down()
     {
+        Schema::table('posts', function (Blueprint $table) {
+            if (Schema::hasColumn('posts', 'source_id'))
+                $table->dropForeign(['source_id']);
+        });
         Schema::dropIfExists('posts');
     }
 }

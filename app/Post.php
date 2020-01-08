@@ -7,4 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Post extends Model
 {
     protected $guarded = [];
+
+    public function source()
+    {
+        return $this->belongsTo('App\Source');
+    }
 }

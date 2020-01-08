@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Service\ParseLaravelNews;
+use App\Service\ParserLaravelNews;
 use Illuminate\Console\Command;
 
 class ParsePostsCommand extends Command
@@ -42,12 +42,12 @@ class ParsePostsCommand extends Command
 
         try
         {
-            $news = new ParseLaravelNews();
+            $news = new ParserLaravelNews();
             $news->parse() ? $this->info("Finished parsing") : $this->error("Failed parsing");
         }
         catch (\Exception $ex)
         {
-            $this->warn("Site architecture has changed {$ex->getMessage()}");
+            $this->warn($ex->getMessage());
         }
     }
 }

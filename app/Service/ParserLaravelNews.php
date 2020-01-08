@@ -4,11 +4,12 @@ namespace App\Service;
 
 use App\Post;
 use App\Interfaces\ParseSiteInterface;
+use App\Source;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\DomCrawler\Crawler;
 
-class ParseLaravelNews implements ParseSiteInterface
+class ParserLaravelNews implements ParseSiteInterface
 {
     protected $crawler;
     private const URL = "https://laravel-news.com";
@@ -28,6 +29,8 @@ class ParseLaravelNews implements ParseSiteInterface
 
         $html = file_get_contents(self::URI);
 
+        $countNewPost = 0;
+
         $this->crawler->addHtmlContent($html, 'UTF-8');
 
         $posts = $this->crawler->filter('div[class="w-full md:w-3/5 lg:w-2/3 px-5 mb-6"] div.card');
@@ -35,8 +38,10 @@ class ParseLaravelNews implements ParseSiteInterface
         Log::info("Number of posts found (Maybe not unique): {$posts->count()}");
 
 
+        $source = Source::whereName('Laravel News')->firstOrFail();
+
         if ($posts->count() > 0):
-            $posts->each(function (Crawler $node, $i) use (&$arr) {
+            $posts->each(function (Crawler $node, $i) use (&$arr, &$countNewPost, $source) {
                 $imageNode = $node->filter("div.post__image > a > img");
                 $dateNode = $node->filter("div.post__content > span > span")->last();
                 $linkNode = $node->filter("div.post__content > h2 > a");
@@ -57,15 +62,19 @@ class ParseLaravelNews implements ParseSiteInterface
                     $post->image = $image;
                     $post->date = $date;
                     $post->title = $title;
+                    $post->source()->associate($source);
                     $post->link = $link;
                     $post->description = $description;
                     $post->save();
                     Log::info("Added post to the database: {$post->link}");
+                    $countNewPost++;
                 endif;
             });
         else:
             throw new \Exception("Posts not found");
         endif;
+
+        Log::info("Number of New Post: {$countNewPost}");
 
         return true;
 
