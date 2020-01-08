@@ -3,17 +3,17 @@
 namespace App\Service;
 
 use App\Post;
-use App\Interfaces\ParseSiteInterface;
 use App\Source;
+use App\Interfaces\ParseSiteInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\DomCrawler\Crawler;
 
-class ParserLaravelNews implements ParseSiteInterface
+class ParserDemiart implements ParseSiteInterface
 {
     protected $crawler;
-    private const URL = "https://laravel-news.com";
-    private const URI = "https://laravel-news.com/category/news";
+    private const URL = "https://laravel.demiart.ru";
+    private const URI = "https://laravel.demiart.ru";
 
     public function __construct()
     {
@@ -33,29 +33,30 @@ class ParserLaravelNews implements ParseSiteInterface
 
         $this->crawler->addHtmlContent($html, 'UTF-8');
 
-        $posts = $this->crawler->filter('div[class="w-full md:w-3/5 lg:w-2/3 px-5 mb-6"] div.card');
+        $posts = $this->crawler->filter('main#main article');
 
         Log::info("Number of posts found (Maybe not unique): {$posts->count()}");
 
 
-        $source = Source::whereName('Laravel News')->firstOrFail();
+        $source = Source::whereName('Demiart')->firstOrFail();
 
         if ($posts->count() > 0):
             $posts->each(function (Crawler $node, $i) use (&$arr, &$countNewPost, $source) {
-                $imageNode = $node->filter("div.post__image > a > img");
-                $dateNode = $node->filter("div.post__content > span > span")->last();
-                $linkNode = $node->filter("div.post__content > h2 > a");
-                $descriptionNode = $node->filter("div.post__content > p");
+                $imageNode = $node->filter("div.card > a.card__media > img");
+                $linkNode = $node->filter("div.card > a.card__media");
+                $titleNode = $node->filter("div.card > div.card__body > header > h2 > a");
+                $descriptionNode = $node->filter("div.card > div.card__body > div.card__content > p");
+                $dateNode = $node->filter("div.card > div.card__body > footer.card__footer > span.posted-on > a > time");
 
-                if ($imageNode->count() == 0 || $dateNode->count() == 0 || $linkNode->count() == 0 || $descriptionNode->count() == 0):
-                    throw new \Exception("Node not found");
+                if ($imageNode->count() == 0 || $dateNode->count() == 0 || $linkNode->count() == 0 || $descriptionNode->count() == 0 || $titleNode->count() == 0):
+                    throw new \Exception("Node not found ");
                 endif;
 
-                $image = $imageNode->attr('data-cfsrc');
-                $date = Carbon::parse($dateNode->text());
-                $title = $linkNode->text();
-                $link = self::URL . $linkNode->attr('href');
+                $image = $imageNode->attr('src');
+                $title = $titleNode->text();
+                $date = Carbon::parse($dateNode->attr('datetime'));
                 $description = $descriptionNode->text();
+                $link = $linkNode->attr('href');
 
                 if ($this->CheckPost($link)):
                     $post = new Post();

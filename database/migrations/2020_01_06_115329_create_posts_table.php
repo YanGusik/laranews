@@ -21,7 +21,7 @@ class CreatePostsTable extends Migration
             $table->text('description');
             $table->unsignedBigInteger('source_id');
             $table->foreign('source_id')->references('id')->on('sources')->onDelete('cascade');
-            $table->timestamp('date');
+            $table->dateTime('date');
             $table->timestamps();
         });
     }
