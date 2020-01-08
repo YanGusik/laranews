@@ -9,7 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\DomCrawler\Crawler;
 
-class ParserDemiart implements ParseSiteInterface
+class ParserDemiart extends BaseParser implements ParseSiteInterface
 {
     protected $crawler;
     private const URL = "https://laravel.demiart.ru";
@@ -58,16 +58,15 @@ class ParserDemiart implements ParseSiteInterface
                 $description = $descriptionNode->text();
                 $link = $linkNode->attr('href');
 
+
                 if ($this->CheckPost($link)):
-                    $post = new Post();
-                    $post->image = $image;
-                    $post->date = $date;
-                    $post->title = $title;
-                    $post->source()->associate($source);
-                    $post->link = $link;
-                    $post->description = $description;
-                    $post->save();
-                    Log::info("Added post to the database: {$post->link}");
+                    $post = [];
+                    $post['image'] = $image;
+                    $post['date'] = $date;
+                    $post['title'] = $title;
+                    $post['link'] = $link;
+                    $post['description'] = $description;
+                    $this->SavePost($post, $source);
                     $countNewPost++;
                 endif;
             });
@@ -81,13 +80,5 @@ class ParserDemiart implements ParseSiteInterface
 
     }
 
-    /***
-     * Check for uniqueness of a post in the database
-     * @param string $link
-     * @return bool
-     */
-    private function CheckPost(string $link): bool
-    {
-        return !Post::whereLink($link)->exists();
-    }
+
 }
