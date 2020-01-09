@@ -14,7 +14,7 @@ class ConsoleOutput
         static::$runningCommand = $runningCommand;
     }
 
-    public function bar()
+    public function getOutput()
     {
         return (static::$runningCommand)->getOutput();
     }

@@ -42,14 +42,12 @@ class ParsePostsCommand extends BaseCommand
         $this->info("Start parsing");
 
         try {
-//            $ln = new ParserLaravelNews();
-//            $ln->parse() ? $this->info("Finished parsing - LaravelNews") : $this->error("Failed parsing Laravel News");
+            $ln = new ParserLaravelNews();
+            $ln->parse() ? $this->info("\nFinished parsing - LaravelNews") : $this->error("\nFailed parsing Laravel News");
+
             $demiart = new ParserDemiart();
-            if ($demiart->parse()) {
-                $this->info("\nFinished parsing - Demiart");
-            } else {
-                $this->error("\nFailed parsing Demiart");
-            }
+            $demiart->parse() ? $this->info("\nFinished parsing - Demiart") : $this->error("\nFailed parsing Demiart");
+
         } catch (\Exception $ex) {
             $this->warn($ex->getMessage());
         }

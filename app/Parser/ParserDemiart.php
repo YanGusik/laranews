@@ -42,8 +42,7 @@ class ParserDemiart extends BaseParser implements ParseSiteInterface
 
         $source = Source::whereName('Demiart')->firstOrFail();
 
-        $bar = app(ConsoleOutput::class)->bar()->createProgressBar($posts->count());
-
+        $bar = app(ConsoleOutput::class)->getOutput()->createProgressBar($posts->count());
 
         if ($posts->count() > 0):
             $bar->start();
@@ -58,13 +57,11 @@ class ParserDemiart extends BaseParser implements ParseSiteInterface
 
                 $this->CheckNodes($nodes);
 
-
-                $image = $nodes->image->attr('src');
                 $title = $nodes->title->text();
-                $date = Carbon::parse($nodes->date->attr('datetime'));
-                $description = $nodes->description->text();
+                $image = $nodes->image->attr('src');
                 $link = $nodes->link->attr('href');
-
+                $description = $nodes->description->text();
+                $date = Carbon::parse($nodes->date->attr('datetime'));
 
                 if ($this->CheckPost($link)):
                     $post = [];
@@ -87,6 +84,4 @@ class ParserDemiart extends BaseParser implements ParseSiteInterface
         return true;
 
     }
-
-
 }

@@ -5,6 +5,7 @@ namespace App\Parser;
 
 use App\Post;
 use App\Source;
+use Illuminate\Support\Facades\Log;
 
 class BaseParser
 {
@@ -50,7 +51,7 @@ class BaseParser
         $post = new Post();
         $post->image = $data['image'];
         $post->date = $data['date'];
-        $post->title = $data['date'];
+        $post->title = $data['title'];
         $post->source()->associate($source);
         $post->link = $data['link'];
         $post->description = $data['description'];
