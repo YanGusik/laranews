@@ -1,4 +1,4 @@
-<p align="center"><img src="Laradev.png"></p>
+<p align="center"><img src="laradev.png"></p>
 
 ## About Laravel
 
