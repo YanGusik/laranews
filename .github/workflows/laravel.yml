@@ -1,0 +1,35 @@
+name: Laravel
+
+on: [push]
+
+jobs:
+  laravel-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: dev
+      
+    - name: Copy .env
+      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+    - name: Setup MySQL
+      uses: mirromutth/mysql-action@v1.1
+      with:
+        # MYSQL_ROOT_PASSWORD - root superuser password
+        mysql root password: root
+        # MYSQL_DATABASE - name for the default database that is created
+        mysql database: laravel# optional, default is 
+    - name: Install Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
+    - name: Generate key
+      run: php artisan key:generate
+    - name: Run Parsing
+      run: php artisan parse:posts
+    - name: Output all posts
+      run: php artisan parse:all
+
+#     - name: Execute tests (Unit and Feature tests) via PHPUnit
+#       env:
+#         DB_CONNECTION: sqlite
+#         DB_DATABASE: database/database.sqlite
+#       run: vendor/bin/phpunit
