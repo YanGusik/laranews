@@ -1,10 +1,7 @@
 <p align="center"><img src="laradev.png"></p>
 
-## About Laravel
+## About Laranews
 
-I study, I will be glad if you tell me how best to me to fix the structure of the parser, classes, etc. \
-I will be glad to useful links
+A simple parser of news sites.
 
-**Something in Elven**\
-~~Не ворчать и не кричать тут моё творение DEV ветки \
-Хотя помощи хотел бы~~
+_`In developing`_
