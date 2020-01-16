@@ -2,9 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Helpers\ConsoleOutput;
 use App\Parser\ParserDemiart;
 use App\Parser\ParserLaravelNews;
+use App\Source;
 use Illuminate\Console\Command;
+use Symfony\Component\DomCrawler\Crawler;
 
 class ParsePostsCommand extends BaseCommand
 {
@@ -21,15 +24,33 @@ class ParsePostsCommand extends BaseCommand
      * @var string
      */
     protected $description = 'Parse posts from laravel news sites and add data to the database';
+    /**
+     * @var Crawler
+     */
+    private $crawler;
+    /**
+     * @var ConsoleOutput
+     */
+    private $consoleOutput;
+    /**
+     * @var Source
+     */
+    private $source;
+
 
     /**
      * Create a new command instance.
      *
-     * @return void
+     * @param Crawler $crawler
+     * @param ConsoleOutput $consoleOutput
+     * @param Source $source
      */
-    public function __construct()
+    public function __construct(Crawler $crawler, ConsoleOutput $consoleOutput, Source $source)
     {
         parent::__construct();
+        $this->crawler = $crawler;
+        $this->consoleOutput = $consoleOutput;
+        $this->source = $source;
     }
 
     /**
@@ -42,11 +63,17 @@ class ParsePostsCommand extends BaseCommand
         $this->info("Start parsing");
 
         try {
-            $ln = new ParserLaravelNews();
-            $ln->parse() ? $this->info("\nFinished parsing - LaravelNews") : $this->error("\nFailed parsing Laravel News");
+            $ln = new ParserLaravelNews($this->crawler, $this->consoleOutput, $this->source);
+            $ln->parse();
 
-            $demiart = new ParserDemiart();
-            $demiart->parse() ? $this->info("\nFinished parsing - Demiart") : $this->error("\nFailed parsing Demiart");
+            $this->info("\n");
+
+            foreach ($ln->dump() as $header => $value) {
+                $this->info($header. ': '. $value);
+            }
+
+//            $demiart = new ParserDemiart();
+//            $demiart->parse() ? $this->info("\nFinished parsing - Demiart") : $this->error("\nFailed parsing Demiart");
 
         } catch (\Exception $ex) {
             $this->warn($ex->getMessage());
