@@ -3,26 +3,71 @@
 
 namespace App\Parser;
 
+use App\Helpers\ConsoleOutput;
 use App\Post;
 use App\Source;
+use Exception;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\Console\Helper\ProgressBar;
 
 class BaseParser
 {
+
+    /**
+     * @var ConsoleOutput
+     */
+    private $consoleOutput;
+
+    /**
+     * BaseParser constructor.
+     * @param ConsoleOutput $consoleOutput
+     */
+    public function __construct(ConsoleOutput $consoleOutput)
+    {
+        $this->consoleOutput = $consoleOutput;
+    }
+
     /***
      * Check for uniqueness of a post in the database
-     * @param string $link
+     * @param ExternalPost $post
      * @return bool
      */
-    protected function CheckPost(string $link): bool
+    protected function CheckPost(ExternalPost $post): bool
     {
-        return Post::whereLink($link)->doesntExist();
+        return Post::whereLink($post->getLink())->doesntExist();
+    }
+
+    /***
+     * Method checking the uniqueness of all posts in the collection
+     * @param Collection $posts
+     * @return bool
+     */
+    protected function CheckPosts(Collection $posts): bool
+    {
+        if ($posts->isEmpty())
+            return false;
+        return $posts->every(function (ExternalPost $post) {
+            return $this->CheckPost($post);
+        });
+    }
+
+    /***
+     * Count unique post
+     * @param Collection $posts
+     * @return int|mixed
+     */
+    protected function CountNewPosts(Collection $posts): bool
+    {
+        return $posts->sum(function (ExternalPost $post) {
+            return $this->CheckPost($post);
+        });
     }
 
     /***
      * Check that on this site, all elements are present
      * @param Nodes $node
-     * @throws \Exception
+     * @throws Exception
      */
     protected function CheckNodes(Nodes $node): void
     {
@@ -38,25 +83,35 @@ class BaseParser
         if ($node->date->count() == 0)
             $errors[] = 'date';
         if (count($errors) > 0)
-            throw new \Exception("Nodes not found: ", implode(', ', $errors));
+            throw new Exception("Nodes not found: ". implode(', ', $errors));
     }
 
     /***
-     * Save Post
-     * @param $data
+     * Save Post only unique
+     * @param ExternalPost $data
      * @param Source $source
      */
-    protected function SavePost($data, Source $source): void
+    protected function SavePost(ExternalPost $data, Source $source): void
     {
+        if (!$this->CheckPost($data))
+            return;
         $post = new Post();
-        $post->image = $data['image'];
-        $post->date = $data['date'];
-        $post->title = $data['title'];
+        $post->fill($data->toArray());
         $post->source()->associate($source);
-        $post->link = $data['link'];
-        $post->description = $data['description'];
         $post->save();
-        Log::info("Add new post in bd: {$post->link}");
+        $this->consoleOutput::info($data->getTitle());
+    }
+
+    /***
+     * Save Many Post
+     * @param Collection $data
+     * @param Source $source
+     */
+    protected function SavePosts(Collection $data, Source $source): void
+    {
+        foreach ($data as $datum) {
+            $this->SavePost($datum, $source);
+        }
     }
 
 }

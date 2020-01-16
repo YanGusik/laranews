@@ -35,14 +35,7 @@ class ParseTableCommand extends BaseCommand
     public function __construct(Post $post)
     {
         parent::__construct();
-        $this->posts = $post::with('source')->orderBy('date')->get()->map(function ($post) {
-            return [
-              'id' => $post->id,
-              'title' => $post->title,
-              'source' => $post->sourcename,
-              'date' => Carbon::parse($post->date)->diffForHumans()
-            ];
-        })->toArray();
+        $this->posts = $post;
     }
 
     /**
@@ -52,6 +45,15 @@ class ParseTableCommand extends BaseCommand
      */
     public function handle()
     {
+        $this->posts = $this->posts::with('source')->orderBy('date')->get()->map(function ($post) {
+            return [
+                'id' => $post->id,
+                'title' => $post->title,
+                'source' => $post->sourcename,
+                'date' => Carbon::parse($post->date)->diffForHumans()
+            ];
+        })->toArray();
+
         $this->table($this->headers, $this->posts);
     }
 }
