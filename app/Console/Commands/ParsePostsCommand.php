@@ -63,17 +63,27 @@ class ParsePostsCommand extends BaseCommand
         $this->info("Start parsing");
 
         try {
-            $ln = new ParserLaravelNews($this->crawler, $this->consoleOutput, $this->source);
+            // 1
+            $this->info("Laravel News:");
+            $ln = new ParserLaravelNews($this->crawler, $this->consoleOutput);
             $ln->parse();
+
+            foreach ($ln->dump() as $header => $value) {
+                $this->info($header . ': ' . $value);
+            }
 
             $this->info("\n");
 
-            foreach ($ln->dump() as $header => $value) {
-                $this->info($header. ': '. $value);
+            // 2
+            $this->info("Demiart:");
+            $dm = new ParserDemiart($this->crawler, $this->consoleOutput);
+            $dm->parse();
+
+            foreach ($dm->dump() as $header => $value) {
+                $this->info($header . ': ' . $value);
             }
 
-//            $demiart = new ParserDemiart();
-//            $demiart->parse() ? $this->info("\nFinished parsing - Demiart") : $this->error("\nFailed parsing Demiart");
+            $this->info("\n");
 
         } catch (\Exception $ex) {
             $this->warn($ex->getMessage());
