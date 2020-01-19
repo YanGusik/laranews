@@ -6,6 +6,7 @@ use App\Helpers\ConsoleOutput;
 use App\Post;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -78,7 +79,7 @@ class ParseTableCommand extends BaseCommand
      */
     protected function getPosts()
     {
-        $posts = collect($this->post->limit((int)$this->option('count'))->get())->map(function ($post) {
+        $posts = collect($this->post->get())->map(function ($post) {
             return $this->getPostInformation($post);
         })->filter()->all();
 
@@ -211,6 +212,7 @@ class ParseTableCommand extends BaseCommand
 
     public function displayPosts(array $posts)
     {
+        $posts = array_slice($posts, 0, (int)$this->option('count'));
         if ($this->option('json')) {
             $this->line(json_encode(array_values($posts)));
             return;
@@ -229,7 +231,7 @@ class ParseTableCommand extends BaseCommand
     {
         return [
             ['columns', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Columns to include in the post table '],
-            ['count', 'c', InputOption::VALUE_OPTIONAL, 'Only show method, URI and action columns', 10],
+            ['count', 'c', InputOption::VALUE_OPTIONAL, 'Only show method, URI and action columns (Examples: -c4 or --count=4)', 10],
             ['compact', null, InputOption::VALUE_OPTIONAL, 'Only show method, URI and action columns', true],
             ['json', null, InputOption::VALUE_NONE, 'Output the post list as JSON'],
             ['title', null, InputOption::VALUE_OPTIONAL, 'Filter the posts by title'],
