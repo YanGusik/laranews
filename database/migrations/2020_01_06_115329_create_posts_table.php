@@ -19,7 +19,7 @@ class CreatePostsTable extends Migration
             $table->string('link');
             $table->string('image');
             $table->text('description');
-            $table->unsignedBigInteger('source_id');
+            $table->bigInteger('source_id')->unsigned()->nullable();
             $table->foreign('source_id')->references('id')->on('sources')->onDelete('cascade');
             $table->dateTime('date');
             $table->timestamps();
